@@ -20,8 +20,15 @@ class MyApp extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               ImageCard(image: AssetImage("assets/windows-xp.jpeg")),
-              QuestionCard(),
-              AnswerCard(),
+              QuestionCard(text: Text("What image is that")),
+              AnswerCard(options: [
+                AnswerCardOption(
+                    icon: Icon(Icons.food_bank), text: Text("Food")),
+                AnswerCardOption(
+                    icon: Icon(Icons.landscape), text: Text("Scenery")),
+                AnswerCardOption(
+                    icon: Icon(Icons.people), text: Text("People")),
+              ]),
               CounterCard(),
             ],
           ),
@@ -51,12 +58,14 @@ class ImageCard extends StatelessWidget {
 }
 
 class QuestionCard extends StatelessWidget {
-  const QuestionCard({super.key});
+  final Text text;
+
+  const QuestionCard({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Text("What image is that"),
+      child: text,
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.only(left: 20, top: 20, right: 20),
       color: Colors.red.shade200,
@@ -66,19 +75,16 @@ class QuestionCard extends StatelessWidget {
 }
 
 class AnswerCard extends StatelessWidget {
-  const AnswerCard({super.key});
+  final List<AnswerCardOption> options;
+
+  const AnswerCard({super.key, required this.options});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AnswerCardOption(icon: Icon(Icons.food_bank), text: Text("Food")),
-          AnswerCardOption(icon: Icon(Icons.landscape), text: Text("Scenery")),
-          AnswerCardOption(icon: Icon(Icons.people), text: Text("People")),
-        ],
-        spacing: 50,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: options,
       ),
       margin: const EdgeInsets.only(left: 20, top: 20, right: 20),
       padding: EdgeInsets.all(20),
@@ -87,7 +93,7 @@ class AnswerCard extends StatelessWidget {
   }
 }
 
-class AnswerCardOption extends StatelessWidget {
+class AnswerCardOption extends StatefulWidget {
   final Icon icon;
   final Text text;
 
@@ -98,9 +104,32 @@ class AnswerCardOption extends StatelessWidget {
   });
 
   @override
+  State<StatefulWidget> createState() {
+    return _AnswerCardOptionState();
+  }
+}
+
+class _AnswerCardOptionState extends State<AnswerCardOption> {
+  _AnswerCardOptionState();
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [icon, text],
+    return FloatingActionButton(
+      child: Column(
+        children: [widget.icon, widget.text],
+        mainAxisAlignment: MainAxisAlignment.center,
+      ),
+      foregroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      focusColor: Colors.transparent,
+      splashColor: Colors.transparent,
+      elevation: 0,
+      highlightElevation: 0,
+      hoverElevation: 0,
+      focusElevation: 0,
+      enableFeedback: false,
+      onPressed: () {},
     );
   }
 }
