@@ -1,5 +1,19 @@
 # Tugas Pertemuan 3: Widget & State
 
+## A. Program dari ALPRO
+Dari ALPRO, disediakan versinya sendiri di repository `mobile_programming` di bagian 4. Di dalam MyApp di dalam aplikasi ini, terdapat 2 widget kustom lainnya.
+
+### 1. RowColumnPage (StatelessWidget)
+RowColumnPage adalah home di MyApp yang bertanggung jawab untuk menulis semua card dalam aplikasinya. RowColumnPage berisikan Scaffold untuk membentuk framework di dalam widget untuk mempermudah pemisahan appBar dan body.  
+Body di dalam Scaffold nya adalah sebuah Column yang berisikan semua container yang ingin diperlihatkan ke user.  
+RowColumnPage bersifat stateless karena class itu sendiri tidak ada memerlukan penyimpanan state.
+
+### 2. CounterCard (StatefulWidget)
+CounterCard adalah widget yang bertujuan untuk merekam berapa kali tombol counter ditekan dalam widget ini.  
+CounterCard bersifat stateful karena untuk menghitung berapa kali tombolnya ditekan selama runtime, diperlukan perubahan state dalam widget.  
+Untuk menyimpan counternya, diperlukan fungsi `_incrementCounter` yang menggunakan `setState` untuk mengganti nilai sebuah variabel selama runtime.
+
+## B. Program sendiri
 Di dalam programming aplikasi ini, dijalankan class MyApp (StatelessWidget) yang berfungsi sebagai akar dari widget-widget yang dibuat di dalam aplikasi ini.  
 Di dalam MyApp ini, dipakai 4 widget kustom, yaitu:
 
