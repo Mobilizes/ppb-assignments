@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:app/scope_painter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:record/record.dart';
+
+import 'package:app/scope_painter.dart';
+import 'package:app/repositories/history_repository.dart';
 
 class MicPage extends StatefulWidget {
   const MicPage({super.key});
@@ -106,6 +109,8 @@ class _MicPageState extends State<MicPage> {
 
   @override
   Widget build(BuildContext context) {
+    final historyRespository = context.watch<HistoryRepository>();
+
     return MaterialApp(
       title: "Audio Volume Tracker",
       home: Scaffold(
