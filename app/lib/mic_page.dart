@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:app/history_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -91,10 +92,10 @@ class _MicPageState extends State<MicPage> {
   }
 
   MaterialColor getDbTextColor() {
-    if (volume < 55.0) {
+    if (volume < 45.0) {
       return Colors.green;
     }
-    if (volume < 90.0) {
+    if (volume < 75.0) {
       return Colors.yellow;
     }
     return Colors.red;
@@ -109,8 +110,6 @@ class _MicPageState extends State<MicPage> {
 
   @override
   Widget build(BuildContext context) {
-    final historyRespository = context.watch<HistoryRepository>();
-
     return MaterialApp(
       title: "Audio Volume Tracker",
       home: Scaffold(
@@ -121,15 +120,6 @@ class _MicPageState extends State<MicPage> {
         ),
         body: Column(
           children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16.0),
-              child: const Text(
-                "Top UI Section",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
             Expanded(
               child: Center(
                 child: Column(
@@ -166,8 +156,13 @@ class _MicPageState extends State<MicPage> {
             ),
           ],
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/history');
+          },
+          child: Icon(Icons.newspaper),
+        ),
       ),
     );
   }
 }
-
