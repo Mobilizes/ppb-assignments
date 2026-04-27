@@ -1,0 +1,8 @@
+# Python bytecode
+__pycache__/
+
+# Python virtual environment
+venv/
+*.local
+
+ets-ppb-1512-firebase-adminsdk-fbsvc-6095ea91df.json
