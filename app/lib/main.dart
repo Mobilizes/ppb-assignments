@@ -1,16 +1,16 @@
 import 'dart:async';
-import 'package:app/history_page.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:app/firebase_options.dart';
+import 'package:app/pages/history_page.dart';
+import 'package:app/pages/login_page.dart';
 import 'package:app/pages/mic_page.dart';
+import 'package:app/pages/register_page.dart';
 import 'package:app/repositories/history_repository.dart';
 import 'package:app/repositories/user_repository.dart';
-import 'package:app/pages/login_page.dart';
-import 'package:app/pages/register_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runZonedGuarded(
@@ -107,6 +107,11 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  }
+
+  @override
   void initState() {
     super.initState();
     _checkSession();
@@ -127,10 +132,5 @@ class _SplashPageState extends State<SplashPage> {
       }
       Navigator.pop(context);
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

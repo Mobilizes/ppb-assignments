@@ -1,19 +1,11 @@
+import 'package:app/models/history.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
-import 'package:app/models/history.dart';
 
 class HistoryRepository extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final List<History> currentHistory = [];
   String? _userId;
-
-  void updateUserId(String? userId) {
-    if (_userId != userId) {
-      _userId = userId;
-      fetchHistory();
-    }
-  }
 
   Future<void> addHistory(double maxDb) async {
     if (_userId == null) return;
@@ -22,6 +14,21 @@ class HistoryRepository extends ChangeNotifier {
       'created': FieldValue.serverTimestamp(),
       'userId': _userId,
     });
+    await fetchHistory();
+  }
+
+  Future<void> deleteHistories(List<String> ids) async {
+    final batch = _firestore.batch();
+    for (String id in ids) {
+      final docRef = _firestore.collection('histories').doc(id);
+      batch.delete(docRef);
+    }
+    await batch.commit();
+    await fetchHistory();
+  }
+
+  Future<void> deleteHistory(String id) async {
+    await _firestore.collection('histories').doc(id).delete();
     await fetchHistory();
   }
 
@@ -49,18 +56,10 @@ class HistoryRepository extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteHistory(String id) async {
-    await _firestore.collection('histories').doc(id).delete();
-    await fetchHistory();
-  }
-
-  Future<void> deleteHistories(List<String> ids) async {
-    final batch = _firestore.batch();
-    for (String id in ids) {
-      final docRef = _firestore.collection('histories').doc(id);
-      batch.delete(docRef);
+  void updateUserId(String? userId) {
+    if (_userId != userId) {
+      _userId = userId;
+      fetchHistory();
     }
-    await batch.commit();
-    await fetchHistory();
   }
 }

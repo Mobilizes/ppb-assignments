@@ -18,6 +18,41 @@ class MicPage extends StatefulWidget {
   }
 }
 
+class ScopePainter extends CustomPainter {
+  final List<double> channel;
+  final Color lineColor;
+
+  ScopePainter({required this.channel, this.lineColor = Colors.blue});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final sectionHeight = size.height;
+
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round;
+
+    List<Offset> points = [];
+
+    if (channel.isEmpty) return;
+
+    double xStep = size.width / channel.length;
+
+    for (int i = 0; i < channel.length; i++) {
+      double x = i * xStep;
+
+      double y = sectionHeight - (channel[i] * sectionHeight);
+      points.add(Offset(x, y));
+    }
+
+    canvas.drawPoints(PointMode.polygon, points, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant ScopePainter oldDelegate) => true;
+}
+
 class _MicPageState extends State<MicPage> {
   AudioRecorder record = AudioRecorder();
   StreamSubscription? audioSubscription;
@@ -30,107 +65,6 @@ class _MicPageState extends State<MicPage> {
   final int volumeBufferLength = 4;
   final double safeVolumeLimit = 55.0;
   final double warningVolumeLimit = 77.5;
-
-  double getAverageVolume() {
-    if (volumeBuffer.length < volumeBufferLength / 2) {
-      return 0;
-    }
-
-    double sum = 0.0;
-    for (double vol in volumeBuffer) {
-      sum += vol;
-    }
-
-    return sum / volumeBuffer.length;
-  }
-
-  Future<void> startRecording() async {
-    if (!await record.hasPermission()) {
-      return;
-    }
-
-    setState(() {
-      isRecording = true;
-    });
-
-    final stream = await record.startStream(
-      const RecordConfig(
-        encoder: AudioEncoder.pcm16bits,
-        sampleRate: 44100,
-        numChannels: 1,
-        noiseSuppress: true,
-      ),
-    );
-
-    audioSubscription = stream.listen((Uint8List data) {
-      final byteData = ByteData.sublistView(data);
-
-      List<double> temp = [];
-
-      int sumSamples = 0;
-      int maxAmpl = (1 << 15);
-
-      for (int i = 0; i < byteData.lengthInBytes; i += 2) {
-        final sample = byteData.getInt16(i, Endian.little);
-        sumSamples += sample * sample;
-        temp.add(sample / maxAmpl);
-      }
-
-      double rms = temp.isNotEmpty ? sqrt(sumSamples / temp.length) : 0.0;
-
-      setState(() {
-        samples = temp;
-        if (samples.length > 100) {
-          double volume = 0.0;
-          if (rms > 0) {
-            volume = 20.0 * log(rms / maxAmpl) / ln10 + 90.0;
-          }
-
-          volumeBuffer.add(volume);
-          if (volumeBuffer.length > volumeBufferLength) {
-            volumeBuffer.removeFirst();
-          }
-
-          double averageVolume = getAverageVolume();
-          if (averageVolume >= warningVolumeLimit) {
-            _isHighDb = true;
-            if (averageVolume > _maxDbDuringHigh) {
-              _maxDbDuringHigh = volume;
-            }
-          } else if (_isHighDb && averageVolume < warningVolumeLimit) {
-            context.read<HistoryRepository>().addHistory(_maxDbDuringHigh);
-            _isHighDb = false;
-            _maxDbDuringHigh = 0.0;
-          }
-        }
-      });
-    });
-  }
-
-  Future<void> stopRecording() async {
-    await audioSubscription?.cancel();
-    await record.stop();
-    setState(() {
-      isRecording = false;
-      volumeBuffer.clear();
-      samples = List.filled(samples.length, 0.0);
-    });
-  }
-
-  Future<void> toggleRecording() async {
-    if (isRecording) {
-      await stopRecording();
-    } else {
-      await startRecording();
-    }
-  }
-
-  @override
-  void dispose() {
-    audioSubscription?.cancel();
-    record.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -270,39 +204,105 @@ class _MicPageState extends State<MicPage> {
       ),
     );
   }
-}
-
-class ScopePainter extends CustomPainter {
-  final List<double> channel;
-  final Color lineColor;
-
-  ScopePainter({required this.channel, this.lineColor = Colors.blue});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final sectionHeight = size.height;
-
-    final paint = Paint()
-      ..color = lineColor
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round;
-
-    List<Offset> points = [];
-
-    if (channel.isEmpty) return;
-
-    double xStep = size.width / channel.length;
-
-    for (int i = 0; i < channel.length; i++) {
-      double x = i * xStep;
-
-      double y = sectionHeight - (channel[i] * sectionHeight);
-      points.add(Offset(x, y));
-    }
-
-    canvas.drawPoints(PointMode.polygon, points, paint);
+  void dispose() {
+    audioSubscription?.cancel();
+    record.dispose();
+    super.dispose();
   }
 
-  @override
-  bool shouldRepaint(covariant ScopePainter oldDelegate) => true;
+  double getAverageVolume() {
+    if (volumeBuffer.length < volumeBufferLength / 2) {
+      return 0;
+    }
+
+    double sum = 0.0;
+    for (double vol in volumeBuffer) {
+      sum += vol;
+    }
+
+    return sum / volumeBuffer.length;
+  }
+
+  Future<void> startRecording() async {
+    if (!await record.hasPermission()) {
+      return;
+    }
+
+    setState(() {
+      isRecording = true;
+    });
+
+    final stream = await record.startStream(
+      const RecordConfig(
+        encoder: AudioEncoder.pcm16bits,
+        sampleRate: 44100,
+        numChannels: 1,
+        noiseSuppress: true,
+      ),
+    );
+
+    audioSubscription = stream.listen((Uint8List data) {
+      final byteData = ByteData.sublistView(data);
+
+      List<double> temp = [];
+
+      int sumSamples = 0;
+      int maxAmpl = (1 << 15);
+
+      for (int i = 0; i < byteData.lengthInBytes; i += 2) {
+        final sample = byteData.getInt16(i, Endian.little);
+        sumSamples += sample * sample;
+        temp.add(sample / maxAmpl);
+      }
+
+      double rms = temp.isNotEmpty ? sqrt(sumSamples / temp.length) : 0.0;
+
+      setState(() {
+        samples = temp;
+        if (samples.length > 100) {
+          double volume = 0.0;
+          if (rms > 0) {
+            volume = 20.0 * log(rms / maxAmpl) / ln10 + 90.0;
+          }
+
+          volumeBuffer.add(volume);
+          if (volumeBuffer.length > volumeBufferLength) {
+            volumeBuffer.removeFirst();
+          }
+
+          double averageVolume = getAverageVolume();
+          if (averageVolume >= warningVolumeLimit) {
+            _isHighDb = true;
+            if (averageVolume > _maxDbDuringHigh) {
+              _maxDbDuringHigh = volume;
+            }
+          } else if (_isHighDb && averageVolume < warningVolumeLimit) {
+            context.read<HistoryRepository>().addHistory(_maxDbDuringHigh);
+            _isHighDb = false;
+            _maxDbDuringHigh = 0.0;
+          }
+        }
+      });
+    });
+  }
+
+  Future<void> stopRecording() async {
+    await audioSubscription?.cancel();
+    await record.stop();
+    setState(() {
+      isRecording = false;
+      volumeBuffer.clear();
+      samples = List.filled(samples.length, 0.0);
+    });
+  }
+
+  Future<void> toggleRecording() async {
+    if (isRecording) {
+      await stopRecording();
+    } else {
+      await startRecording();
+    }
+  }
 }

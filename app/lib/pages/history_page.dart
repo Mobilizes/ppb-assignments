@@ -1,7 +1,7 @@
+import 'package:app/models/history.dart';
+import 'package:app/repositories/history_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import 'package:app/repositories/history_repository.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -12,26 +12,7 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   final Set<String> _selectedIds = {};
-
-  void _toggleSelection(String id) {
-    setState(() {
-      if (_selectedIds.contains(id)) {
-        _selectedIds.remove(id);
-      } else {
-        _selectedIds.add(id);
-      }
-    });
-  }
-
-  void _clearSelection() {
-    setState(() {
-      _selectedIds.clear();
-    });
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
+  final Set<String> _previousSelectedIds = {};
 
   @override
   Widget build(BuildContext context) {
@@ -49,14 +30,36 @@ class _HistoryPageState extends State<HistoryPage> {
                 icon: const Icon(Icons.arrow_back_rounded),
                 onPressed: () => Navigator.pop(context),
               ),
-        title: Text(
-          isSelectionMode ? '${_selectedIds.length} Selected' : 'High Decibel History',
-          style: const TextStyle(fontWeight: FontWeight.w600),
+        title: TextButton(
+          onPressed: isSelectionMode
+              ? () {
+                  if (_selectedIds.length == repository.currentHistory.length) {
+                    _clearSelection();
+                    _selectAll(_previousSelectedIds.toList());
+                  } else {
+                    _previousSelectedIds
+                      ..clear()
+                      ..addAll(_selectedIds);
+                    _selectAll(
+                      repository.currentHistory.map((h) => h.id).toList(),
+                    );
+                  }
+                }
+              : null,
+          child: Text(
+            isSelectionMode
+                ? '${_selectedIds.length} selected'
+                : 'High Decibel History',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
         ),
         actions: [
           if (isSelectionMode)
             IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                color: Colors.redAccent,
+              ),
               onPressed: () async {
                 await repository.deleteHistories(_selectedIds.toList());
                 _clearSelection();
@@ -69,11 +72,19 @@ class _HistoryPageState extends State<HistoryPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.history_rounded, size: 80, color: Colors.grey.withAlpha(50)),
+                  Icon(
+                    Icons.history_rounded,
+                    size: 80,
+                    color: Colors.grey.withAlpha(50),
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     "No history recorded yet.",
-                    style: TextStyle(fontSize: 18, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -90,7 +101,10 @@ class _HistoryPageState extends State<HistoryPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                     side: isSelected
-                        ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
+                        ? BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          )
                         : BorderSide.none,
                   ),
                   child: InkWell(
@@ -112,7 +126,9 @@ class _HistoryPageState extends State<HistoryPage> {
                             ? Checkbox(
                                 value: isSelected,
                                 onChanged: (_) => _toggleSelection(history.id),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
                               )
                             : Container(
                                 padding: const EdgeInsets.all(12),
@@ -120,11 +136,17 @@ class _HistoryPageState extends State<HistoryPage> {
                                   color: Colors.red.withAlpha(10),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.volume_up_rounded, color: Colors.red),
+                                child: const Icon(
+                                  Icons.volume_up_rounded,
+                                  color: Colors.red,
+                                ),
                               ),
                         title: Text(
                           '${history.maxDb.isFinite ? history.maxDb.toStringAsFixed(1) : '0.0'} dB',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
                         subtitle: Text(
                           _formatDate(history.created),
@@ -133,7 +155,10 @@ class _HistoryPageState extends State<HistoryPage> {
                         trailing: isSelectionMode
                             ? null
                             : IconButton(
-                                icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: Colors.redAccent,
+                                ),
                                 onPressed: () {
                                   repository.deleteHistory(history.id);
                                 },
@@ -145,5 +170,31 @@ class _HistoryPageState extends State<HistoryPage> {
               },
             ),
     );
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedIds.clear();
+    });
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
+  }
+
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _selectAll(List<String> ids) {
+    setState(() {
+      _selectedIds.addAll(ids);
+    });
   }
 }
