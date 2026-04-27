@@ -154,14 +154,26 @@ class _HistoryPageState extends State<HistoryPage> {
                         ),
                         trailing: isSelectionMode
                             ? null
-                            : IconButton(
-                                icon: const Icon(
-                                  Icons.delete_outline_rounded,
-                                  color: Colors.redAccent,
-                                ),
-                                onPressed: () {
-                                  repository.deleteHistory(history.id);
-                                },
+                            : Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.edit_calendar_rounded,
+                                      color: Colors.blueAccent,
+                                    ),
+                                    onPressed: () => _editDate(context, history, repository),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      color: Colors.redAccent,
+                                    ),
+                                    onPressed: () {
+                                      repository.deleteHistory(history.id);
+                                    },
+                                  ),
+                                ],
                               ),
                       ),
                     ),
@@ -176,6 +188,35 @@ class _HistoryPageState extends State<HistoryPage> {
     setState(() {
       _selectedIds.clear();
     });
+  }
+
+  Future<void> _editDate(
+      BuildContext context, History history, HistoryRepository repository) async {
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: history.created,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (selectedDate == null) return;
+
+    if (!context.mounted) return;
+
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(history.created),
+    );
+    if (selectedTime == null) return;
+
+    final newDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+
+    await repository.updateHistoryDate(history.id, newDateTime);
   }
 
   String _formatDate(DateTime date) {

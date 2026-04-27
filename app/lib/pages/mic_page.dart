@@ -276,7 +276,7 @@ class _MicPageState extends State<MicPage> {
           if (averageVolume >= warningVolumeLimit) {
             _isHighDb = true;
             if (averageVolume > _maxDbDuringHigh) {
-              _maxDbDuringHigh = volume;
+              _maxDbDuringHigh = averageVolume;
             }
           } else if (_isHighDb && averageVolume < warningVolumeLimit) {
             context.read<HistoryRepository>().addHistory(_maxDbDuringHigh);

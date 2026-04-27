@@ -32,6 +32,13 @@ class HistoryRepository extends ChangeNotifier {
     await fetchHistory();
   }
 
+  Future<void> updateHistoryDate(String id, DateTime newDate) async {
+    await _firestore.collection('histories').doc(id).update({
+      'created': Timestamp.fromDate(newDate),
+    });
+    await fetchHistory();
+  }
+
   Future<void> fetchHistory() async {
     if (_userId == null) {
       currentHistory.clear();
