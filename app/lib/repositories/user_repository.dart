@@ -13,8 +13,8 @@ class UserRepository extends ChangeNotifier {
   User? _currentUser;
   User? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
-
-  Future<void> checkSession() async {
+Future<void> checkSession() async {
+  try {
     final prefs = await SharedPreferences.getInstance();
     final expiryString = prefs.getString(_sessionKey);
     final userId = prefs.getString(_userIdKey);
@@ -22,6 +22,7 @@ class UserRepository extends ChangeNotifier {
     if (expiryString != null && userId != null) {
       final expiryTime = DateTime.parse(expiryString);
       if (DateTime.now().isBefore(expiryTime)) {
+        // Session is still valid, fetch user details
         final doc = await _firestore.collection('users').doc(userId).get();
         if (doc.exists) {
           _currentUser = User.fromMap(doc.id, doc.data()!);
@@ -30,10 +31,13 @@ class UserRepository extends ChangeNotifier {
         }
       }
     }
-
-    await logout();
+  } catch (e) {
+    debugPrint("Session check failed: $e");
   }
 
+  // Invalid or expired session
+  await logout();
+}
   Future<void> login(String email, String password) async {
     final query = await _firestore
         .collection('users')
@@ -82,9 +86,13 @@ class UserRepository extends ChangeNotifier {
 
   Future<void> logout() async {
     _currentUser = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_sessionKey);
-    await prefs.remove(_userIdKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_sessionKey);
+      await prefs.remove(_userIdKey);
+    } catch (e) {
+      debugPrint("Failed to logout or remove session: $e");
+    }
     notifyListeners();
   }
 

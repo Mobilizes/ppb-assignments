@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -40,8 +41,8 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDQzOleBiVmnxKNo4KuFmv9MDGlA4Y5Uko',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_WEB'] ?? '',
     appId: '1:851479812076:web:297821a97298787a6712c9',
     messagingSenderId: '851479812076',
     projectId: 'ets-ppb-1512',
@@ -49,16 +50,16 @@ class DefaultFirebaseOptions {
     storageBucket: 'ets-ppb-1512.firebasestorage.app',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCFS9RSAlKIj3H1QvEufweml1SSw9vJ-I4',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_ANDROID'] ?? '',
     appId: '1:851479812076:android:be08efb8e1cfc1706712c9',
     messagingSenderId: '851479812076',
     projectId: 'ets-ppb-1512',
     storageBucket: 'ets-ppb-1512.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAqYz6J4yGoi8DvmSvcni-FmLPPmZSHgww',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_IOS'] ?? '',
     appId: '1:851479812076:ios:8ba04be44f9afb306712c9',
     messagingSenderId: '851479812076',
     projectId: 'ets-ppb-1512',
@@ -66,8 +67,8 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.app',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAqYz6J4yGoi8DvmSvcni-FmLPPmZSHgww',
+  static FirebaseOptions get macos => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_IOS'] ?? '',
     appId: '1:851479812076:ios:8ba04be44f9afb306712c9',
     messagingSenderId: '851479812076',
     projectId: 'ets-ppb-1512',
@@ -75,8 +76,8 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.app',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDQzOleBiVmnxKNo4KuFmv9MDGlA4Y5Uko',
+  static FirebaseOptions get windows => FirebaseOptions(
+    apiKey: dotenv.env['FIREBASE_API_KEY_WEB'] ?? '',
     appId: '1:851479812076:web:4f4075f7004aeba66712c9',
     messagingSenderId: '851479812076',
     projectId: 'ets-ppb-1512',

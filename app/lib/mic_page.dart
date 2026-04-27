@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:app/repositories/history_repository.dart';
-import 'package:app/scope_painter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -135,18 +135,17 @@ class _MicPageState extends State<MicPage> {
   @override
   Widget build(BuildContext context) {
     final double currentVolume = getAverageVolume();
-    final bool isSafe = currentVolume < safeVolumeLimit;
     final bool isWarning =
         currentVolume >= safeVolumeLimit && currentVolume < warningVolumeLimit;
-    final bool isDanger = currentVolume >= warningVolumeLimit;
+    final bool isLoud = currentVolume >= warningVolumeLimit;
 
     Color volumeColor = Colors.green;
     if (isWarning) volumeColor = Colors.orange;
-    if (isDanger) volumeColor = Colors.red;
+    if (isLoud) volumeColor = Colors.red;
 
-    final String statusText = isDanger
-        ? "Hazardous Noise!"
-        : (isWarning ? "Warning: Loud" : "Safe Noise Level");
+    final String statusText = isLoud
+        ? "Level: LOUD!"
+        : (isWarning ? "Level: Warning" : "Level: Safe");
 
     return Scaffold(
       appBar: AppBar(
@@ -189,7 +188,9 @@ class _MicPageState extends State<MicPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            currentVolume.isFinite ? currentVolume.toStringAsFixed(1) : '0.0',
+                            currentVolume.isFinite
+                                ? currentVolume.toStringAsFixed(1)
+                                : '0.0',
                             style: TextStyle(
                               fontSize: 64,
                               fontWeight: FontWeight.w800,
@@ -269,4 +270,39 @@ class _MicPageState extends State<MicPage> {
       ),
     );
   }
+}
+
+class ScopePainter extends CustomPainter {
+  final List<double> channel;
+  final Color lineColor;
+
+  ScopePainter({required this.channel, this.lineColor = Colors.blue});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final sectionHeight = size.height;
+
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round;
+
+    List<Offset> points = [];
+
+    if (channel.isEmpty) return;
+
+    double xStep = size.width / channel.length;
+
+    for (int i = 0; i < channel.length; i++) {
+      double x = i * xStep;
+
+      double y = sectionHeight - (channel[i] * sectionHeight);
+      points.add(Offset(x, y));
+    }
+
+    canvas.drawPoints(PointMode.polygon, points, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant ScopePainter oldDelegate) => true;
 }

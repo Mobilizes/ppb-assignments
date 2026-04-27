@@ -6,26 +6,47 @@ import 'package:app/models/history.dart';
 class HistoryRepository extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final List<History> currentHistory = [];
+  String? _userId;
+
+  void updateUserId(String? userId) {
+    if (_userId != userId) {
+      _userId = userId;
+      fetchHistory();
+    }
+  }
 
   Future<void> addHistory(double maxDb) async {
+    if (_userId == null) return;
     await _firestore.collection('histories').add({
       'maxDb': maxDb,
       'created': FieldValue.serverTimestamp(),
+      'userId': _userId,
     });
     await fetchHistory();
   }
 
   Future<void> fetchHistory() async {
-    final snapshot = await _firestore.collection('histories')
-        .orderBy('created', descending: true)
-        .get();
-
-    currentHistory.clear();
-    for (var doc in snapshot.docs) {
-      currentHistory.add(History.fromMap(doc.id, doc.data()));
+    if (_userId == null) {
+      currentHistory.clear();
+      notifyListeners();
+      return;
     }
 
-    notifyListeners();
+    try {
+      final snapshot = await _firestore.collection('histories')
+          .where('userId', isEqualTo: _userId)
+          .orderBy('created', descending: true)
+          .get();
+
+      currentHistory.clear();
+      for (var doc in snapshot.docs) {
+        currentHistory.add(History.fromMap(doc.id, doc.data()));
+      }
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Failed to fetch history: $e");
+    }
   }
 
   Future<void> deleteHistory(String id) async {
