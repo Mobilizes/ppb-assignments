@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
+import 'package:vibration/vibration.dart';
 
 class MicPage extends StatefulWidget {
   const MicPage({super.key});
@@ -56,11 +57,14 @@ class ScopePainter extends CustomPainter {
 class _MicPageState extends State<MicPage> {
   AudioRecorder record = AudioRecorder();
   StreamSubscription? audioSubscription;
+
   bool isRecording = false;
   List<double> samples = [];
   Queue<double> volumeBuffer = Queue();
   double _maxDbDuringHigh = 0.0;
   bool _isHighDb = false;
+  bool _canVibrate = false;
+  DateTime? _lastVibrationTime;
 
   final int volumeBufferLength = 4;
   final double safeVolumeLimit = 55.0;
@@ -83,6 +87,7 @@ class _MicPageState extends State<MicPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           "Decibel Tracker",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -230,6 +235,11 @@ class _MicPageState extends State<MicPage> {
       return;
     }
 
+    _canVibrate = await Vibration.hasVibrator();
+    if (_canVibrate) {
+      Vibration.vibrate(duration: 300, amplitude: 128);
+    }
+
     setState(() {
       isRecording = true;
     });
@@ -274,25 +284,51 @@ class _MicPageState extends State<MicPage> {
 
           double averageVolume = getAverageVolume();
           if (averageVolume >= warningVolumeLimit) {
-            _isHighDb = true;
+            if (!_isHighDb) {
+              debugPrint("Volume high detected: $averageVolume dB");
+              _isHighDb = true;
+            }
             if (averageVolume > _maxDbDuringHigh) {
               _maxDbDuringHigh = averageVolume;
             }
           } else if (_isHighDb && averageVolume < warningVolumeLimit) {
+            debugPrint("Volume dropped below limit. Saving history: $_maxDbDuringHigh dB");
             context.read<HistoryRepository>().addHistory(_maxDbDuringHigh);
             _isHighDb = false;
             _maxDbDuringHigh = 0.0;
           }
         }
       });
+
+      if (_isHighDb) {
+        final now = DateTime.now();
+        if (_canVibrate && (_lastVibrationTime == null || now.difference(_lastVibrationTime!).inMilliseconds > 500)) {
+          Vibration.vibrate(amplitude: 256);
+          _lastVibrationTime = now;
+        }
+      }
     });
   }
 
   Future<void> stopRecording() async {
+    if (_canVibrate) {
+      Vibration.vibrate(duration: 300, amplitude: 128);
+    }
+
     await audioSubscription?.cancel();
     await record.stop();
+
+    if (!mounted) return;
+
+    if (_isHighDb && _maxDbDuringHigh > 0) {
+      debugPrint("Stopping recording during high volume. Saving: $_maxDbDuringHigh dB");
+      context.read<HistoryRepository>().addHistory(_maxDbDuringHigh);
+    }
+
     setState(() {
       isRecording = false;
+      _isHighDb = false;
+      _maxDbDuringHigh = 0.0;
       volumeBuffer.clear();
       samples = List.filled(samples.length, 0.0);
     });

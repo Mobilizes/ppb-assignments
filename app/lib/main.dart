@@ -34,6 +34,7 @@ void main() {
               create: (context) => HistoryRepository(),
               update: (context, userRepo, historyRepo) {
                 final repo = historyRepo ?? HistoryRepository();
+                debugPrint("ProxyProvider: Updating HistoryRepository with user ${userRepo.currentUser?.id}");
                 repo.updateUserId(userRepo.currentUser?.id);
                 return repo;
               },
@@ -130,7 +131,6 @@ class _SplashPageState extends State<SplashPage> {
       } else {
         Navigator.of(context).pushReplacementNamed('/login');
       }
-      Navigator.pop(context);
     }
   }
 }

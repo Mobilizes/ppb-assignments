@@ -8,13 +8,22 @@ class HistoryRepository extends ChangeNotifier {
   String? _userId;
 
   Future<void> addHistory(double maxDb) async {
-    if (_userId == null) return;
-    await _firestore.collection('histories').add({
-      'maxDb': maxDb,
-      'created': FieldValue.serverTimestamp(),
-      'userId': _userId,
-    });
-    await fetchHistory();
+    if (_userId == null) {
+      debugPrint("Cannot add history: _userId is null");
+      return;
+    }
+    try {
+      debugPrint("Adding history: maxDb=$maxDb, userId=$_userId");
+      await _firestore.collection('histories').add({
+        'maxDb': maxDb,
+        'created': FieldValue.serverTimestamp(),
+        'userId': _userId,
+      });
+      debugPrint("History added successfully");
+      await fetchHistory();
+    } catch (e) {
+      debugPrint("Failed to add history: $e");
+    }
   }
 
   Future<void> deleteHistories(List<String> ids) async {
@@ -64,9 +73,12 @@ class HistoryRepository extends ChangeNotifier {
   }
 
   void updateUserId(String? userId) {
+    debugPrint("HistoryRepository: updateUserId called with $userId (current: $_userId)");
     if (_userId != userId) {
       _userId = userId;
       fetchHistory();
     }
   }
+
+  String? get userId => _userId;
 }
