@@ -46,6 +46,7 @@ dependencies:
   crypto: ^3.0.7
   flutter_dotenv: ^6.0.1
   vibration: ^3.1.8
+  awesome_notifications: ^0.10.1
 
 dev_dependencies:
   flutter_test:

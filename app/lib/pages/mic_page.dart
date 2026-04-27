@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:app/repositories/history_repository.dart';
+import 'package:app/services/notification_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -292,7 +293,9 @@ class _MicPageState extends State<MicPage> {
               _maxDbDuringHigh = averageVolume;
             }
           } else if (_isHighDb && averageVolume < warningVolumeLimit) {
-            debugPrint("Volume dropped below limit. Saving history: $_maxDbDuringHigh dB");
+            debugPrint(
+              "Volume dropped below limit. Saving history: $_maxDbDuringHigh dB",
+            );
             context.read<HistoryRepository>().addHistory(_maxDbDuringHigh);
             _isHighDb = false;
             _maxDbDuringHigh = 0.0;
@@ -302,9 +305,17 @@ class _MicPageState extends State<MicPage> {
 
       if (_isHighDb) {
         final now = DateTime.now();
-        if (_canVibrate && (_lastVibrationTime == null || now.difference(_lastVibrationTime!).inMilliseconds > 500)) {
+        if (_canVibrate &&
+            (_lastVibrationTime == null ||
+                now.difference(_lastVibrationTime!).inMilliseconds > 500)) {
           Vibration.vibrate(amplitude: 256);
           _lastVibrationTime = now;
+
+          NotificationService.createNotification(
+            id: 1,
+            title: "So loud!",
+            body: "Please turn down your voice!",
+          );
         }
       }
     });
@@ -321,7 +332,9 @@ class _MicPageState extends State<MicPage> {
     if (!mounted) return;
 
     if (_isHighDb && _maxDbDuringHigh > 0) {
-      debugPrint("Stopping recording during high volume. Saving: $_maxDbDuringHigh dB");
+      debugPrint(
+        "Stopping recording during high volume. Saving: $_maxDbDuringHigh dB",
+      );
       context.read<HistoryRepository>().addHistory(_maxDbDuringHigh);
     }
 
