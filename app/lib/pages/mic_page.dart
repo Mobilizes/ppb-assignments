@@ -90,7 +90,7 @@ class _MicPageState extends State<MicPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text(
-          "Decibel Tracker",
+          "Voice Volume Tracker",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
