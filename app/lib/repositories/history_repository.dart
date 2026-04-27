@@ -7,10 +7,6 @@ class HistoryRepository extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final List<History> currentHistory = [];
 
-  static Future<void> initialize() async {
-    // No local initialization needed for Firestore
-  }
-
   Future<void> addHistory(double maxDb) async {
     await _firestore.collection('histories').add({
       'maxDb': maxDb,

@@ -69,7 +69,7 @@ class _HistoryPageState extends State<HistoryPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.history_rounded, size: 80, color: Colors.grey.withOpacity(0.5)),
+                  Icon(Icons.history_rounded, size: 80, color: Colors.grey.withAlpha(50)),
                   const SizedBox(height: 16),
                   Text(
                     "No history recorded yet.",
@@ -117,7 +117,7 @@ class _HistoryPageState extends State<HistoryPage> {
                             : Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(0.1),
+                                  color: Colors.red.withAlpha(10),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.volume_up_rounded, color: Colors.red),

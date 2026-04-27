@@ -29,7 +29,7 @@ class _MicPageState extends State<MicPage> {
 
   final int volumeBufferLength = 4;
   final double safeVolumeLimit = 55.0;
-  final double warningVolumeLimit = 80.0;
+  final double warningVolumeLimit = 77.5;
 
   double getAverageVolume() {
     if (volumeBuffer.length < volumeBufferLength / 2) {
@@ -58,6 +58,7 @@ class _MicPageState extends State<MicPage> {
         encoder: AudioEncoder.pcm16bits,
         sampleRate: 44100,
         numChannels: 1,
+        noiseSuppress: true,
       ),
     );
 
@@ -174,11 +175,11 @@ class _MicPageState extends State<MicPage> {
                       padding: const EdgeInsets.all(50),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: volumeColor.withOpacity(0.1),
+                        color: volumeColor.withAlpha(10),
                         border: Border.all(color: volumeColor, width: 6),
                         boxShadow: [
                           BoxShadow(
-                            color: volumeColor.withOpacity(0.2),
+                            color: volumeColor.withAlpha(20),
                             blurRadius: 20,
                             spreadRadius: 10,
                           ),
@@ -201,7 +202,7 @@ class _MicPageState extends State<MicPage> {
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w600,
-                              color: volumeColor.withOpacity(0.8),
+                              color: volumeColor.withAlpha(80),
                             ),
                           ),
                         ],
@@ -236,7 +237,7 @@ class _MicPageState extends State<MicPage> {
                         ).colorScheme.surfaceContainerHighest.withAlpha(50),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
                       child: CustomPaint(
                         painter: ScopePainter(
                           channel: samples,
