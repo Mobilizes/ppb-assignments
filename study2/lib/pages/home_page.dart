@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:study2/services/firestore_service.dart';
 
-const String testUserId = "wIVlKYKRUUwcEH6Xc5cl";
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -17,10 +15,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final twatTextController = TextEditingController();
 
-  final FirestoreService firestoreService = FirestoreService();
+  final firestoreService = FirestoreService();
 
   @override
   Widget build(BuildContext context) {
+    if (firestoreService.auth.currentUser == null) {
+      Navigator.popUntil(context, (Route<dynamic> route) {
+        return route.settings.name == "/login";
+      });
+    }
+
+    final user = firestoreService.auth.currentUser!;
+
     return Scaffold(
       appBar: AppBar(
         leading: Icon(Icons.blind),
@@ -48,10 +54,7 @@ class _HomePageState extends State<HomePage> {
                     if (twatTextController.text.isEmpty) {
                       return;
                     }
-                    firestoreService.addTwat(
-                      testUserId,
-                      twatTextController.text,
-                    );
+                    firestoreService.addTwat(user.uid, twatTextController.text);
                     twatTextController.clear();
                   },
                   icon: Icon(Icons.keyboard_return),
@@ -73,7 +76,7 @@ class _HomePageState extends State<HomePage> {
                   final twatsList = snapshot.data!.docs;
 
                   return FutureBuilder(
-                    future: firestoreService.fetchTwatVotes(testUserId),
+                    future: firestoreService.fetchTwatVotes(user.uid),
                     builder: (context, voteSnapshot) {
                       if (voteSnapshot.connectionState ==
                           ConnectionState.waiting) {
@@ -88,6 +91,7 @@ class _HomePageState extends State<HomePage> {
                           return Padding(
                             padding: const EdgeInsets.all(0.0),
                             child: TwatView(
+                              userUid: user.uid,
                               twatId: twatsList[index].id,
                               twatData:
                                   twatsList[index].data()
@@ -111,6 +115,7 @@ class _HomePageState extends State<HomePage> {
 }
 
 class TwatView extends StatefulWidget {
+  final String userUid;
   final String twatId;
   final Map<String, dynamic> twatData;
   final Map<String, int> votedTwats;
@@ -118,6 +123,7 @@ class TwatView extends StatefulWidget {
 
   const TwatView({
     super.key,
+    required this.userUid,
     required this.twatId,
     required this.twatData,
     required this.votedTwats,
@@ -171,7 +177,7 @@ class _TwatViewState extends State<TwatView> {
     DateTime timePosted = widget.twatData["createdAt"].toDate();
 
     return FutureBuilder(
-      future: widget.firestoreService.fetchTwatVotes(testUserId),
+      future: widget.firestoreService.fetchTwatVotes(widget.userUid),
       builder: (context, snapshot) {
         return Container(
           margin: const EdgeInsets.all(20.0),
@@ -206,7 +212,7 @@ class _TwatViewState extends State<TwatView> {
                             }),
                             widget.firestoreService.voteTwat(
                               widget.twatId,
-                              testUserId,
+                              widget.userUid,
                               1,
                             ),
                           },
@@ -225,7 +231,7 @@ class _TwatViewState extends State<TwatView> {
                             }),
                             widget.firestoreService.voteTwat(
                               widget.twatId,
-                              testUserId,
+                              widget.userUid,
                               -1,
                             ),
                           },

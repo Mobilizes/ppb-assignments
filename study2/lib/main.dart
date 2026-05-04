@@ -2,6 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:study2/firebase_options.dart';
 import 'package:study2/pages/home_page.dart';
+import 'package:study2/pages/login_page.dart';
+import 'package:study2/pages/register_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +16,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Twatter', home: HomePage());
+    return MaterialApp(
+      title: 'Twatter',
+      home: LoginPage(),
+      routes: <String, WidgetBuilder>{
+        '/home': (BuildContext builder) => const HomePage(),
+        '/login': (BuildContext builder) => const LoginPage(),
+        '/register': (BuildContext builder) => const RegisterPage(),
+      },
+    );
   }
 }

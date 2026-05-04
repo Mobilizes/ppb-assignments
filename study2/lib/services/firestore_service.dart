@@ -1,13 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FirestoreService {
+  final auth = FirebaseAuth.instance;
   final db = FirebaseFirestore.instance;
   late CollectionReference users = db.collection("users");
   late CollectionReference twats = db.collection("twats");
   late CollectionReference votes = db.collection("votes");
 
-  Future<void> addUser(String username, String password) {
-    return users.add({"username": username, "password": password});
+  Future<void> registerUser(
+    String email,
+    String password,
+    String username,
+  ) async {
+    try {
+      UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      String uid = userCredential.user!.uid;
+
+      await db.collection('users').doc(uid).set({
+        "username": username,
+        "email": email,
+        "createdAt": FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<String> fetchUsername(String userId) async {
